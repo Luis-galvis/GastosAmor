@@ -17,6 +17,7 @@ interface DashboardProps {
 
 const Dashboard = ({ month }: DashboardProps) => {
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showEndMonthConfirm, setShowEndMonthConfirm] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("otros");
@@ -70,7 +71,7 @@ const Dashboard = ({ month }: DashboardProps) => {
           <KittyButton
             variant="ghost"
             size="sm"
-            onClick={() => endMonth.mutate(month.id)}
+            onClick={() => setShowEndMonthConfirm(true)}
             className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
           >
             Finalizar mes
@@ -176,8 +177,8 @@ const Dashboard = ({ month }: DashboardProps) => {
                       key={cat.id}
                       onClick={() => setCategory(cat.id)}
                       className={`p-3 rounded-xl text-2xl transition-all ${category === cat.id
-                          ? "bg-primary text-primary-foreground scale-110 shadow-kitty"
-                          : "bg-secondary hover:bg-secondary/80"
+                        ? "bg-primary text-primary-foreground scale-110 shadow-kitty"
+                        : "bg-secondary hover:bg-secondary/80"
                         }`}
                     >
                       {cat.emoji}
@@ -194,6 +195,44 @@ const Dashboard = ({ month }: DashboardProps) => {
               >
                 Agregar 🎀
               </KittyButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* End Month Confirmation Modal */}
+      {showEndMonthConfirm && (
+        <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background w-full max-w-md rounded-3xl p-6 animate-slide-up shadow-kitty">
+            <div className="text-center space-y-4">
+              <div className="text-5xl mb-2">💖</div>
+              <h3 className="text-xl font-bold text-foreground">
+                ¿Estás segura de cerrar el mes, mi princesa?
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Recuerda que se te pierden las cuentas. Solo ciérralo si ya se acabó el mes y te pagaron de nuevo 💸✨
+              </p>
+
+              <div className="flex gap-3 pt-4">
+                <KittyButton
+                  variant="secondary"
+                  onClick={() => setShowEndMonthConfirm(false)}
+                  className="flex-1"
+                  size="lg"
+                >
+                  Cancelar
+                </KittyButton>
+                <KittyButton
+                  onClick={() => {
+                    endMonth.mutate(month.id);
+                    setShowEndMonthConfirm(false);
+                  }}
+                  className="flex-1"
+                  size="lg"
+                >
+                  Sí, terminar mes 🎀
+                </KittyButton>
+              </div>
             </div>
           </div>
         </div>
