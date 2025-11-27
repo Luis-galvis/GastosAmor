@@ -1,0 +1,208 @@
+import { useState } from "react";
+import HelloKittyIcon from "./HelloKittyIcon";
+import KittyButton from "./KittyButton";
+import KittyCard from "./KittyCard";
+import KittyInput from "./KittyInput";
+import ExpenseList from "./ExpenseList";
+import Suggestions from "./Suggestions";
+import { useActiveMonth, useEndMonth, Month } from "@/hooks/useMonth";
+import { useExpenses, useAddExpense } from "@/hooks/useExpenses";
+import { EXPENSE_CATEGORIES, getCategoryById } from "@/lib/categories";
+import { Plus, X, TrendingDown, Wallet, PiggyBank } from "lucide-react";
+
+interface DashboardProps {
+  month: Month;
+}
+
+const Dashboard = ({ month }: DashboardProps) => {
+  const [showAddExpense, setShowAddExpense] = useState(false);
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("otros");
+  
+  const { data: expenses = [] } = useExpenses(month.id);
+  const addExpense = useAddExpense();
+  const endMonth = useEndMonth();
+
+  const totalSpent = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+  const remaining = Number(month.salary) - totalSpent;
+  const percentSpent = (totalSpent / Number(month.salary)) * 100;
+
+  const handleAddExpense = () => {
+    if (description && amount && parseFloat(amount) > 0) {
+      addExpense.mutate({
+        month_id: month.id,
+        description,
+        amount: parseFloat(amount),
+        category,
+      });
+      setDescription("");
+      setAmount("");
+      setCategory("otros");
+      setShowAddExpense(false);
+    }
+  };
+
+  const formatMoney = (num: number) => {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(num);
+  };
+
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      {/* Header */}
+      <div className="gradient-kitty p-4 pb-8 rounded-b-3xl shadow-kitty">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <HelloKittyIcon className="w-10 h-10" />
+            <span className="text-primary-foreground font-bold text-lg">Mi Mesada</span>
+          </div>
+          <KittyButton
+            variant="ghost"
+            size="sm"
+            onClick={() => endMonth.mutate(month.id)}
+            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+          >
+            Finalizar mes
+          </KittyButton>
+        </div>
+
+        {/* Balance Card */}
+        <KittyCard className="mt-4">
+          <div className="text-center space-y-2">
+            <p className="text-muted-foreground text-sm">Te queda</p>
+            <p className={`text-3xl font-extrabold ${remaining < 0 ? "text-destructive" : "text-foreground"}`}>
+              {formatMoney(remaining)}
+            </p>
+            
+            {/* Progress bar */}
+            <div className="w-full h-3 bg-secondary rounded-full overflow-hidden mt-4">
+              <div 
+                className={`h-full transition-all duration-500 rounded-full ${
+                  percentSpent > 80 ? "bg-destructive" : percentSpent > 50 ? "bg-kitty-yellow" : "bg-primary"
+                }`}
+                style={{ width: `${Math.min(percentSpent, 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {percentSpent.toFixed(0)}% gastado
+            </p>
+          </div>
+        </KittyCard>
+      </div>
+
+      {/* Stats */}
+      <div className="px-4 -mt-4 grid grid-cols-2 gap-3">
+        <KittyCard className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Sueldo</p>
+            <p className="font-bold text-sm">{formatMoney(Number(month.salary))}</p>
+          </div>
+        </KittyCard>
+        
+        <KittyCard className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+            <TrendingDown className="w-5 h-5 text-accent" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Gastado</p>
+            <p className="font-bold text-sm">{formatMoney(totalSpent)}</p>
+          </div>
+        </KittyCard>
+      </div>
+
+      {/* Suggestions */}
+      <div className="px-4 mt-4">
+        <Suggestions 
+          salary={Number(month.salary)} 
+          totalSpent={totalSpent} 
+          expenses={expenses}
+          remaining={remaining}
+        />
+      </div>
+
+      {/* Expenses List */}
+      <div className="px-4 mt-4">
+        <h2 className="font-bold text-lg mb-3 flex items-center gap-2">
+          <span>📝</span> Mis gastos
+        </h2>
+        <ExpenseList expenses={expenses} />
+      </div>
+
+      {/* Add Expense Modal */}
+      {showAddExpense && (
+        <div className="fixed inset-0 bg-foreground/50 flex items-end justify-center z-50">
+          <div className="bg-background w-full max-w-md rounded-t-3xl p-6 animate-slide-up">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Agregar gasto 💸</h3>
+              <button onClick={() => setShowAddExpense(false)} className="p-2">
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <KittyInput
+                label="¿En qué gastaste?"
+                placeholder="Ej: Almuerzo"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+
+              <KittyInput
+                label="¿Cuánto?"
+                type="number"
+                placeholder="Ej: 15000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Categoría</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {EXPENSE_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setCategory(cat.id)}
+                      className={`p-3 rounded-xl text-2xl transition-all ${
+                        category === cat.id
+                          ? "bg-primary text-primary-foreground scale-110 shadow-kitty"
+                          : "bg-secondary hover:bg-secondary/80"
+                      }`}
+                    >
+                      {cat.emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <KittyButton
+                onClick={handleAddExpense}
+                disabled={!description || !amount || parseFloat(amount) <= 0}
+                className="w-full"
+                size="lg"
+              >
+                Agregar 🎀
+              </KittyButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FAB */}
+      <button
+        onClick={() => setShowAddExpense(true)}
+        className="fixed bottom-6 right-6 w-16 h-16 gradient-kitty rounded-full shadow-kitty flex items-center justify-center active:scale-95 transition-transform"
+      >
+        <Plus className="w-8 h-8 text-primary-foreground" />
+      </button>
+    </div>
+  );
+};
+
+export default Dashboard;
