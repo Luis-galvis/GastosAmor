@@ -6,6 +6,7 @@ import KittyInput from "./KittyInput";
 import { useStartMonth } from "@/hooks/useMonth";
 import { formatNumberWithDots, parseFormattedNumber } from "@/lib/formatNumber";
 import { DollarSign } from "lucide-react";
+import { getRandomLoveMessage } from "@/lib/loveMessages";
 
 const StartMonthView = () => {
   const [salary, setSalary] = useState("");
@@ -31,12 +32,9 @@ const StartMonthView = () => {
           <div className="flex justify-center">
             <HelloKittyIcon className="w-24 h-24 animate-bounce-soft" />
           </div>
-          <h1 className="text-2xl font-extrabold text-foreground">
-            ¡Hola! 💕
-          </h1>
-          <p className="text-muted-foreground">
-            Empecemos un nuevo mes de ahorro
-          </p>
+          <h1 className="text-2xl font-extrabold text-foreground">¡Hola! 💕</h1>
+          <p className="text-muted-foreground">Empecemos un nuevo mes de ahorro</p>
+          <p className="text-sm text-primary-foreground/80">{getRandomLoveMessage()}</p>
         </div>
 
         {/* Form */}

@@ -4,12 +4,15 @@ import KittyButton from "./KittyButton";
 import KittyCard from "./KittyCard";
 import KittyInput from "./KittyInput";
 import ExpenseList from "./ExpenseList";
+import IncomeList from "./IncomeList";
 import Suggestions from "./Suggestions";
+import { getRandomLoveMessage } from "@/lib/loveMessages";
 import { useActiveMonth, useEndMonth, Month } from "@/hooks/useMonth";
 import { useExpenses, useAddExpense } from "@/hooks/useExpenses";
+import { useIncomes, useAddIncome } from "@/hooks/useIncomes";
 import { EXPENSE_CATEGORIES, getCategoryById } from "@/lib/categories";
 import { formatNumberWithDots, parseFormattedNumber } from "@/lib/formatNumber";
-import { Plus, X, TrendingDown, Wallet, PiggyBank } from "lucide-react";
+import { Plus, X, TrendingDown, Wallet, PiggyBank, DollarSign } from "lucide-react";
 
 interface DashboardProps {
   month: Month;
@@ -17,22 +20,36 @@ interface DashboardProps {
 
 const Dashboard = ({ month }: DashboardProps) => {
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showAddIncome, setShowAddIncome] = useState(false);
   const [showEndMonthConfirm, setShowEndMonthConfirm] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("otros");
+  const [incomeDescription, setIncomeDescription] = useState("");
+  const [incomeAmount, setIncomeAmount] = useState("");
 
   const { data: expenses = [] } = useExpenses(month.id);
+  const { data: incomes = [] } = useIncomes(month.id);
   const addExpense = useAddExpense();
+  const addIncome = useAddIncome();
   const endMonth = useEndMonth();
 
   const totalSpent = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-  const remaining = Number(month.salary) - totalSpent;
-  const percentSpent = (totalSpent / Number(month.salary)) * 100;
+  const totalIncome = incomes.reduce((sum, inc) => sum + Number(inc.amount), 0);
+  const remaining = Number(month.salary) + totalIncome - totalSpent;
+  const totalAvailable = Number(month.salary) + totalIncome;
+  const percentSpent = totalAvailable > 0 ? (totalSpent / totalAvailable) * 100 : 0;
+
+  const loveMessage = getRandomLoveMessage();
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatNumberWithDots(e.target.value);
     setAmount(formatted);
+  };
+
+  const handleIncomeAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatNumberWithDots(e.target.value);
+    setIncomeAmount(formatted);
   };
 
   const handleAddExpense = () => {
@@ -51,6 +68,20 @@ const Dashboard = ({ month }: DashboardProps) => {
     }
   };
 
+  const handleAddIncome = () => {
+    const amountNum = parseFormattedNumber(incomeAmount);
+    if (incomeDescription && amountNum > 0) {
+      addIncome.mutate({
+        month_id: month.id,
+        description: incomeDescription,
+        amount: amountNum,
+      });
+      setIncomeDescription("");
+      setIncomeAmount("");
+      setShowAddIncome(false);
+    }
+  };
+
   const formatMoney = (num: number) => {
     return new Intl.NumberFormat("es-CO", {
       style: "currency",
@@ -66,13 +97,17 @@ const Dashboard = ({ month }: DashboardProps) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <HelloKittyIcon className="w-10 h-10" />
-            <span className="text-primary-foreground font-bold text-lg">Mi Mesada</span>
+              <div>
+                <span className="text-primary-foreground font-bold text-lg">Mi Mesada 💕</span>
+                <p className="text-xs text-primary-foreground/80">{loveMessage}</p>
+              </div>
           </div>
           <KittyButton
             variant="ghost"
             size="sm"
             onClick={() => setShowEndMonthConfirm(true)}
             className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+              love
           >
             Finalizar mes
           </KittyButton>
@@ -81,7 +116,7 @@ const Dashboard = ({ month }: DashboardProps) => {
         {/* Balance Card */}
         <KittyCard className="mt-4">
           <div className="text-center space-y-2">
-            <p className="text-muted-foreground text-sm">Te queda</p>
+            <p className="text-muted-foreground text-sm">Te queda mi amor</p>
             <p className={`text-3xl font-extrabold ${remaining < 0 ? "text-destructive" : "text-foreground"}`}>
               {formatMoney(remaining)}
             </p>
@@ -142,12 +177,32 @@ const Dashboard = ({ month }: DashboardProps) => {
         <ExpenseList expenses={expenses} />
       </div>
 
+      {/* Incomes List */}
+      <div className="px-4 mt-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold text-lg flex items-center gap-2">
+            <span>💰</span> Ingresos extras
+          </h2>
+          <KittyButton
+            size="sm"
+            onClick={() => setShowAddIncome(true)}
+            className="text-sm"
+          >
+            + Agregar
+          </KittyButton>
+        </div>
+        <IncomeList incomes={incomes} />
+      </div>
+
       {/* Add Expense Modal */}
       {showAddExpense && (
         <div className="fixed inset-0 bg-foreground/50 flex items-end justify-center z-50">
           <div className="bg-background w-full max-w-md rounded-t-3xl p-6 animate-slide-up">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">Agregar gasto 💸</h3>
+              <div>
+                <h3 className="text-lg font-bold">Agregar gasto mi amor 💸</h3>
+                <p className="text-sm text-muted-foreground">{getRandomLoveMessage()}</p>
+              </div>
               <button onClick={() => setShowAddExpense(false)} className="p-2">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
@@ -192,8 +247,53 @@ const Dashboard = ({ month }: DashboardProps) => {
                 disabled={!description || !amount || parseFormattedNumber(amount) <= 0}
                 className="w-full"
                 size="lg"
+                love
               >
-                Agregar 🎀
+                Agregar mi princesa 🎀
+              </KittyButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Income Modal */}
+      {showAddIncome && (
+        <div className="fixed inset-0 bg-foreground/50 flex items-end justify-center z-50">
+          <div className="bg-background w-full max-w-md rounded-t-3xl p-6 animate-slide-up">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-lg font-bold">Agregar ingreso mi amor 💰</h3>
+                <p className="text-sm text-muted-foreground">{getRandomLoveMessage()}</p>
+              </div>
+              <button onClick={() => setShowAddIncome(false)} className="p-2">
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <KittyInput
+                label="¿De dónde vino?"
+                placeholder="Ej: Venta, regalo"
+                value={incomeDescription}
+                onChange={(e) => setIncomeDescription(e.target.value)}
+              />
+
+              <KittyInput
+                label="¿Cuánto?"
+                type="text"
+                placeholder="Ej: 20.000"
+                value={incomeAmount}
+                onChange={handleIncomeAmountChange}
+              />
+
+              <KittyButton
+                onClick={handleAddIncome}
+                disabled={!incomeDescription || !incomeAmount || parseFormattedNumber(incomeAmount) <= 0}
+                className="w-full"
+                size="lg"
+                love
+              >
+                Agregar ingreso mi vida 💞
               </KittyButton>
             </div>
           </div>

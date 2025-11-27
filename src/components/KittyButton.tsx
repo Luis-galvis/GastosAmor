@@ -1,13 +1,15 @@
 import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { getRandomLoveMessage } from "@/lib/loveMessages";
 
 interface KittyButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "accent" | "ghost";
   size?: "sm" | "md" | "lg";
+  love?: boolean;
 }
 
 const KittyButton = forwardRef<HTMLButtonElement, KittyButtonProps>(
-  ({ className, variant = "primary", size = "md", children, ...props }, ref) => {
+  ({ className, variant = "primary", size = "md", children, love = false, ...props }, ref) => {
     const baseStyles = "font-nunito font-bold rounded-2xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none";
     
     const variants = {
@@ -27,6 +29,7 @@ const KittyButton = forwardRef<HTMLButtonElement, KittyButtonProps>(
       <button
         ref={ref}
         className={cn(baseStyles, variants[variant], sizes[size], className)}
+        title={love ? getRandomLoveMessage() : props.title}
         {...props}
       >
         {children}

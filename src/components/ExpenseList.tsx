@@ -30,12 +30,8 @@ const ExpenseList = ({ expenses }: ExpenseListProps) => {
     return (
       <KittyCard variant="muted" className="text-center py-8">
         <span className="text-4xl mb-2 block">🌸</span>
-        <p className="text-muted-foreground">
-          No hay gastos todavía
-        </p>
-        <p className="text-sm text-muted-foreground">
-          ¡Toca el botón + para agregar uno!
-        </p>
+        <p className="text-muted-foreground">No hay gastos todavía mi amor 💕</p>
+        <p className="text-sm text-muted-foreground">¡Toca el botón + para agregar uno, te amo!</p>
       </KittyCard>
     );
   }
