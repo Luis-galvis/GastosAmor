@@ -4,14 +4,20 @@ import KittyButton from "./KittyButton";
 import KittyCard from "./KittyCard";
 import KittyInput from "./KittyInput";
 import { useStartMonth } from "@/hooks/useMonth";
+import { formatNumberWithDots, parseFormattedNumber } from "@/lib/formatNumber";
 import { DollarSign } from "lucide-react";
 
 const StartMonthView = () => {
   const [salary, setSalary] = useState("");
   const startMonth = useStartMonth();
 
+  const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatNumberWithDots(e.target.value);
+    setSalary(formatted);
+  };
+
   const handleStart = () => {
-    const salaryNum = parseFloat(salary);
+    const salaryNum = parseFormattedNumber(salary);
     if (salaryNum > 0) {
       startMonth.mutate(salaryNum);
     }
@@ -44,16 +50,16 @@ const StartMonthView = () => {
 
           <KittyInput
             label="Tu sueldo"
-            type="number"
-            placeholder="Ej: 1500000"
+            type="text"
+            placeholder="Ej: 1.500.000"
             value={salary}
-            onChange={(e) => setSalary(e.target.value)}
+            onChange={handleSalaryChange}
             icon={<DollarSign className="w-5 h-5" />}
           />
 
           <KittyButton
             onClick={handleStart}
-            disabled={!salary || parseFloat(salary) <= 0 || startMonth.isPending}
+            disabled={!salary || parseFormattedNumber(salary) <= 0 || startMonth.isPending}
             className="w-full"
             size="lg"
           >

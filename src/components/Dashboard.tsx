@@ -8,6 +8,7 @@ import Suggestions from "./Suggestions";
 import { useActiveMonth, useEndMonth, Month } from "@/hooks/useMonth";
 import { useExpenses, useAddExpense } from "@/hooks/useExpenses";
 import { EXPENSE_CATEGORIES, getCategoryById } from "@/lib/categories";
+import { formatNumberWithDots, parseFormattedNumber } from "@/lib/formatNumber";
 import { Plus, X, TrendingDown, Wallet, PiggyBank } from "lucide-react";
 
 interface DashboardProps {
@@ -19,7 +20,7 @@ const Dashboard = ({ month }: DashboardProps) => {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("otros");
-  
+
   const { data: expenses = [] } = useExpenses(month.id);
   const addExpense = useAddExpense();
   const endMonth = useEndMonth();
@@ -28,12 +29,18 @@ const Dashboard = ({ month }: DashboardProps) => {
   const remaining = Number(month.salary) - totalSpent;
   const percentSpent = (totalSpent / Number(month.salary)) * 100;
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatNumberWithDots(e.target.value);
+    setAmount(formatted);
+  };
+
   const handleAddExpense = () => {
-    if (description && amount && parseFloat(amount) > 0) {
+    const amountNum = parseFormattedNumber(amount);
+    if (description && amountNum > 0) {
       addExpense.mutate({
         month_id: month.id,
         description,
-        amount: parseFloat(amount),
+        amount: amountNum,
         category,
       });
       setDescription("");
@@ -77,13 +84,12 @@ const Dashboard = ({ month }: DashboardProps) => {
             <p className={`text-3xl font-extrabold ${remaining < 0 ? "text-destructive" : "text-foreground"}`}>
               {formatMoney(remaining)}
             </p>
-            
+
             {/* Progress bar */}
             <div className="w-full h-3 bg-secondary rounded-full overflow-hidden mt-4">
-              <div 
-                className={`h-full transition-all duration-500 rounded-full ${
-                  percentSpent > 80 ? "bg-destructive" : percentSpent > 50 ? "bg-kitty-yellow" : "bg-primary"
-                }`}
+              <div
+                className={`h-full transition-all duration-500 rounded-full ${percentSpent > 80 ? "bg-destructive" : percentSpent > 50 ? "bg-kitty-yellow" : "bg-primary"
+                  }`}
                 style={{ width: `${Math.min(percentSpent, 100)}%` }}
               />
             </div>
@@ -105,7 +111,7 @@ const Dashboard = ({ month }: DashboardProps) => {
             <p className="font-bold text-sm">{formatMoney(Number(month.salary))}</p>
           </div>
         </KittyCard>
-        
+
         <KittyCard className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
             <TrendingDown className="w-5 h-5 text-accent" />
@@ -119,9 +125,9 @@ const Dashboard = ({ month }: DashboardProps) => {
 
       {/* Suggestions */}
       <div className="px-4 mt-4">
-        <Suggestions 
-          salary={Number(month.salary)} 
-          totalSpent={totalSpent} 
+        <Suggestions
+          salary={Number(month.salary)}
+          totalSpent={totalSpent}
           expenses={expenses}
           remaining={remaining}
         />
@@ -156,10 +162,10 @@ const Dashboard = ({ month }: DashboardProps) => {
 
               <KittyInput
                 label="¿Cuánto?"
-                type="number"
-                placeholder="Ej: 15000"
+                type="text"
+                placeholder="Ej: 15.000"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={handleAmountChange}
               />
 
               <div className="space-y-2">
@@ -169,11 +175,10 @@ const Dashboard = ({ month }: DashboardProps) => {
                     <button
                       key={cat.id}
                       onClick={() => setCategory(cat.id)}
-                      className={`p-3 rounded-xl text-2xl transition-all ${
-                        category === cat.id
+                      className={`p-3 rounded-xl text-2xl transition-all ${category === cat.id
                           ? "bg-primary text-primary-foreground scale-110 shadow-kitty"
                           : "bg-secondary hover:bg-secondary/80"
-                      }`}
+                        }`}
                     >
                       {cat.emoji}
                     </button>
@@ -183,7 +188,7 @@ const Dashboard = ({ month }: DashboardProps) => {
 
               <KittyButton
                 onClick={handleAddExpense}
-                disabled={!description || !amount || parseFloat(amount) <= 0}
+                disabled={!description || !amount || parseFormattedNumber(amount) <= 0}
                 className="w-full"
                 size="lg"
               >
