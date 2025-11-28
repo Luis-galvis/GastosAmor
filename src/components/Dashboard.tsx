@@ -2,6 +2,8 @@ import { useState } from "react";
 import HelloKittyIcon from "./HelloKittyIcon";
 import Calculator from "./Calculator";
 import PasajesView from "./PasajesView";
+import DebtsView from "./DebtsView";
+import MonthlySummary from "./MonthlySummary";
 import KittyButton from "./KittyButton";
 import KittyCard from "./KittyCard";
 import KittyInput from "./KittyInput";
@@ -14,7 +16,7 @@ import { useExpenses, useAddExpense } from "@/hooks/useExpenses";
 import { useIncomes, useAddIncome } from "@/hooks/useIncomes";
 import { EXPENSE_CATEGORIES, getCategoryById } from "@/lib/categories";
 import { formatNumberWithDots, parseFormattedNumber } from "@/lib/formatNumber";
-import { Plus, X, TrendingDown, Wallet, PiggyBank, DollarSign } from "lucide-react";
+import { Plus, X, TrendingDown, Wallet, PiggyBank, DollarSign, CreditCard } from "lucide-react";
 
 interface DashboardProps {
   month: Month;
@@ -25,6 +27,8 @@ const Dashboard = ({ month }: DashboardProps) => {
   const [showAddIncome, setShowAddIncome] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
   const [showPasajes, setShowPasajes] = useState(false);
+  const [showDebts, setShowDebts] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const [showEndMonthConfirm, setShowEndMonthConfirm] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -174,19 +178,30 @@ const Dashboard = ({ month }: DashboardProps) => {
           </div>
         </KittyCard>
 
-        <button onClick={() => setShowPasajes(true)} className="col-span-2">
-          <KittyCard variant="highlight" className="flex items-center justify-between w-full">
+        <button onClick={() => setShowPasajes(true)} className="col-span-1">
+          <KittyCard variant="highlight" className="flex items-center justify-between w-full h-full">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center">
                 <span className="text-xl">🚌</span>
               </div>
               <div className="text-left">
                 <p className="text-xs text-primary-foreground/80">Pasajes</p>
-                <p className="font-bold text-sm text-foreground">Ver detalles</p>
+                <p className="font-bold text-sm text-foreground">Ver</p>
               </div>
             </div>
-            <div className="bg-white/30 p-2 rounded-full">
-              <Plus className="w-4 h-4 text-primary-foreground" />
+          </KittyCard>
+        </button>
+
+        <button onClick={() => setShowDebts(true)} className="col-span-1">
+          <KittyCard variant="highlight" className="flex items-center justify-between w-full h-full">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <p className="text-xs text-primary-foreground/80">Deudas</p>
+                <p className="font-bold text-sm text-foreground">Ver</p>
+              </div>
             </div>
           </KittyCard>
         </button>
@@ -357,8 +372,8 @@ const Dashboard = ({ month }: DashboardProps) => {
                 </KittyButton>
                 <KittyButton
                   onClick={() => {
-                    endMonth.mutate(month.id);
                     setShowEndMonthConfirm(false);
+                    setShowSummary(true);
                   }}
                   className="flex-1"
                   size="lg"
@@ -371,11 +386,28 @@ const Dashboard = ({ month }: DashboardProps) => {
         </div>
       )}
 
+      {/* Monthly Summary Modal */}
+      {showSummary && (
+        <MonthlySummary
+          month={month}
+          expenses={expenses}
+          incomes={incomes}
+          onClose={() => setShowSummary(false)}
+          onConfirmClose={() => {
+            endMonth.mutate(month.id);
+            setShowSummary(false);
+          }}
+        />
+      )}
+
       {/* Calculator Modal */}
       {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
 
       {/* Pasajes Modal */}
       {showPasajes && <PasajesView monthId={month.id} onClose={() => setShowPasajes(false)} />}
+
+      {/* Debts Modal */}
+      {showDebts && <DebtsView onClose={() => setShowDebts(false)} />}
 
       {/* FAB */}
       <button
