@@ -1,13 +1,13 @@
 export const LOVE_MESSAGES = [
-  "Te amo mi amor ❤️",
-  "Eres lo que más quiero en mi vida 💕",
+  "Te amooo mi amor ❤️",
+  "Eres lo que más amooo en mi vida 💕",
   "Eres el amor de mi vida, siempre contigo 💖",
-  "Eres todo lo que quiero en mi vida 🌸",
+  "Eres todo lo que amooo en mi vida 🌸",
   "Te adoro mi princesa, cuida tu corazón 💝",
   "Siempre pensando en ti, mi amorcito 🌷",
-  "Gracias por ser tú, te amo muchísimo ✨",
-  "Contigo todo es mejor, te quiero 💞",
-  "Eres mi alegría y mi calma, te amo 😽",
+  "Gracias por ser tú, te amooo muchísimo ✨",
+  "Contigo todo es mejor, te amooo 💞",
+  "Eres mi alegría y mi calma, te amooo 😽",
   "Mi corazón es tuyo, hasta el infinito 💫",
 ];
 

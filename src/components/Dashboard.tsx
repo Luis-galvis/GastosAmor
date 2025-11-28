@@ -1,5 +1,7 @@
 import { useState } from "react";
 import HelloKittyIcon from "./HelloKittyIcon";
+import Calculator from "./Calculator";
+import PasajesView from "./PasajesView";
 import KittyButton from "./KittyButton";
 import KittyCard from "./KittyCard";
 import KittyInput from "./KittyInput";
@@ -21,6 +23,8 @@ interface DashboardProps {
 const Dashboard = ({ month }: DashboardProps) => {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [showPasajes, setShowPasajes] = useState(false);
   const [showEndMonthConfirm, setShowEndMonthConfirm] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -34,7 +38,9 @@ const Dashboard = ({ month }: DashboardProps) => {
   const addIncome = useAddIncome();
   const endMonth = useEndMonth();
 
-  const totalSpent = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+  const totalSpent = expenses
+    .filter(e => e.category !== "transport_daily")
+    .reduce((sum, exp) => sum + Number(exp.amount), 0);
   const totalIncome = incomes.reduce((sum, inc) => sum + Number(inc.amount), 0);
   const remaining = Number(month.salary) + totalIncome - totalSpent;
   const totalAvailable = Number(month.salary) + totalIncome;
@@ -97,20 +103,30 @@ const Dashboard = ({ month }: DashboardProps) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <HelloKittyIcon className="w-10 h-10" />
-              <div>
-                <span className="text-primary-foreground font-bold text-lg">Mi Mesada 💕</span>
-                <p className="text-xs text-primary-foreground/80">{loveMessage}</p>
-              </div>
+            <div>
+              <span className="text-primary-foreground font-bold text-lg">Mi Mesada 💕</span>
+              <p className="text-xs text-primary-foreground/80">{loveMessage}</p>
+            </div>
           </div>
-          <KittyButton
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowEndMonthConfirm(true)}
-            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+          <div className="flex gap-2">
+            <KittyButton
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowCalculator(true)}
+              className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            >
+              🔢
+            </KittyButton>
+            <KittyButton
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowEndMonthConfirm(true)}
+              className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
               love
-          >
-            Finalizar mes
-          </KittyButton>
+            >
+              Finalizar mes
+            </KittyButton>
+          </div>
         </div>
 
         {/* Balance Card */}
@@ -157,6 +173,23 @@ const Dashboard = ({ month }: DashboardProps) => {
             <p className="font-bold text-sm">{formatMoney(totalSpent)}</p>
           </div>
         </KittyCard>
+
+        <button onClick={() => setShowPasajes(true)} className="col-span-2">
+          <KittyCard variant="highlight" className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center">
+                <span className="text-xl">🚌</span>
+              </div>
+              <div className="text-left">
+                <p className="text-xs text-primary-foreground/80">Pasajes</p>
+                <p className="font-bold text-sm text-foreground">Ver detalles</p>
+              </div>
+            </div>
+            <div className="bg-white/30 p-2 rounded-full">
+              <Plus className="w-4 h-4 text-primary-foreground" />
+            </div>
+          </KittyCard>
+        </button>
       </div>
 
       {/* Suggestions */}
@@ -174,7 +207,7 @@ const Dashboard = ({ month }: DashboardProps) => {
         <h2 className="font-bold text-lg mb-3 flex items-center gap-2">
           <span>📝</span> Mis gastos
         </h2>
-        <ExpenseList expenses={expenses} />
+        <ExpenseList expenses={expenses.filter(e => e.category !== "transport_daily")} />
       </div>
 
       {/* Incomes List */}
@@ -337,6 +370,12 @@ const Dashboard = ({ month }: DashboardProps) => {
           </div>
         </div>
       )}
+
+      {/* Calculator Modal */}
+      {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
+
+      {/* Pasajes Modal */}
+      {showPasajes && <PasajesView monthId={month.id} onClose={() => setShowPasajes(false)} />}
 
       {/* FAB */}
       <button
